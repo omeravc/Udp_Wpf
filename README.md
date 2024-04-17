@@ -346,6 +346,79 @@ private void StartListening()
 }
 
 
+&&&
+
+<Window x:Class="UDP_Socket_Example.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UDP Socket Example" Height="250" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <Label Grid.Row="0" Content="Select mode:"/>
+        <RadioButton Grid.Row="1" Name="serverRadioButton" Content="Server"/>
+        <RadioButton Grid.Row="2" Name="clientRadioButton" Content="Client"/>
+        <Button Grid.Row="3" Content="Start" Click="StartButton_Click"/>
+        <TextBox Grid.Row="4" Name="outputTextBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
+    </Grid>
+</Window>
+
+
+
+using System.Windows;
+using UDP_Socket_Example.Core;
+
+namespace UDP_Socket_Example
+{
+    public partial class MainWindow : Window
+    {
+        private const string ServerIP = "127.0.0.1";
+        private const int ServerPort = 50000;
+        private const int ClientPort = 60000;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+        }
+
+        private void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (serverRadioButton.IsChecked == true)
+            {
+                outputTextBox.AppendText("Starting server...\n");
+                UDPSocket server = new UDPSocket(ServerIP, ServerPort);
+                string receivedMessage = server.Echo();
+                outputTextBox.AppendText($"Server received: {receivedMessage}\n");
+            }
+            else if (clientRadioButton.IsChecked == true)
+            {
+                outputTextBox.AppendText("Starting client...\n");
+                UDPSocket client = new UDPSocket(ServerIP, ClientPort);
+                client.Send("Hello World", ServerIP, ServerPort);
+                string receivedMessage = client.Listen();
+                outputTextBox.AppendText($"Client received: {receivedMessage}\n");
+            }
+            else
+            {
+                MessageBox.Show("Please select either server or client mode.");
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
 
 
 
