@@ -335,6 +335,17 @@ namespace UDPClient
 }
 
 
+......
+
+private void StartListening()
+{
+    udpClient = new UdpClient(new IPEndPoint(IPAddress.Any, port));
+    Thread listenThread = new Thread(new ThreadStart(Listen));
+    listenThread.IsBackground = true;
+    listenThread.Start();
+}
+
+
 
 
 
