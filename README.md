@@ -266,6 +266,75 @@ private void Receive()
     }
 }
 
+???????
+
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows;
+
+namespace UDPClient
+{
+    public partial class MainWindow : Window
+    {
+        private UdpClient udpClient;
+        private const int port = 12345;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            udpClient = new UdpClient();
+            StartReceiving();
+        }
+
+        private void StartReceiving()
+        {
+            Thread receiveThread = new Thread(new ThreadStart(Receive));
+            receiveThread.IsBackground = true;
+            receiveThread.Start();
+        }
+
+        private void Receive()
+        {
+            while (true)
+            {
+                IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+                byte[] data = udpClient.Receive(ref remoteEP);
+                string message = Encoding.UTF8.GetString(data);
+                Dispatcher.Invoke(() => 
+                { 
+                    chatBox.AppendText($"Received from server: {message}\n"); // Add received message directly
+                });
+            }
+        }
+
+        private void Send(string message, string ipAddress)
+        {
+            try
+            {
+                byte[] data = Encoding.UTF8.GetBytes(message);
+                udpClient.Send(data, data.Length, ipAddress, port);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+
+        private void sendButton_Click(object sender, RoutedEventArgs e)
+        {
+            string message = messageBox.Text;
+            if (!string.IsNullOrWhiteSpace(message))
+            {
+                Send(message, "127.0.0.1"); // Send message to server
+                messageBox.Text = "";
+            }
+        }
+    }
+}
+
+
 
 
 
