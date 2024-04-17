@@ -412,6 +412,123 @@ namespace UDP_Socket_Example
     }
 }
 
+₺₺₺₺₺₺
+
+
+using System;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using System.Windows;
+
+namespace UDP_Socket_Example
+{
+    public partial class MainWindow : Window
+    {
+        private Socket _socket;
+        private const int BufferSize = 1024;
+        public const int SIO_UDP_CONNRESET = -1744830452;
+        private const int ServerPort = 50000;
+        private const int ClientPort = 60000;
+
+        public MainWindow()
+        {
+            InitializeComponent();
+            _socket = new Socket(SocketType.Dgram, ProtocolType.Udp);
+            _socket.IOControl((IOControlCode)SIO_UDP_CONNRESET, new byte[] { 0, 0, 0, 0 }, null);
+        }
+
+        private void StartButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (serverRadioButton.IsChecked == true)
+            {
+                outputTextBox.AppendText("Starting server...\n");
+                StartServer(ServerPort);
+            }
+            else if (clientRadioButton.IsChecked == true)
+            {
+                outputTextBox.AppendText("Starting client...\n");
+                StartClient("Hello World", ServerPort);
+            }
+            else
+            {
+                MessageBox.Show("Please select either server or client mode.");
+            }
+        }
+
+        private void StartServer(int port)
+        {
+            try
+            {
+                IPAddress ipAddress = IPAddress.Any;
+                IPEndPoint localEndPoint = new IPEndPoint(ipAddress, port);
+                _socket.Bind(localEndPoint);
+                byte[] receivedBytes = new byte[BufferSize];
+                EndPoint clientEndPoint = new IPEndPoint(IPAddress.Any, 0);
+                int bytesRead = _socket.ReceiveFrom(receivedBytes, ref clientEndPoint);
+                string receivedMessage = Encoding.ASCII.GetString(receivedBytes, 0, bytesRead);
+                outputTextBox.AppendText($"Server received: {receivedMessage}\n");
+                _socket.SendTo(receivedBytes, clientEndPoint);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+
+        private void StartClient(string messageToSend, int port)
+        {
+            try
+            {
+                IPAddress ipAddress = IPAddress.Parse("127.0.0.1");
+                IPEndPoint serverEndPoint = new IPEndPoint(ipAddress, port);
+                byte[] bytesToSend = Encoding.ASCII.GetBytes(messageToSend);
+                _socket.SendTo(bytesToSend, serverEndPoint);
+                byte[] receivedBytes = new byte[BufferSize];
+                EndPoint serverEP = (EndPoint)serverEndPoint;
+                int bytesRead = _socket.ReceiveFrom(receivedBytes, ref serverEP);
+                string receivedMessage = Encoding.ASCII.GetString(receivedBytes, 0, bytesRead);
+                outputTextBox.AppendText($"Client received: {receivedMessage}\n");
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Error: {ex.Message}");
+            }
+        }
+    }
+}
+
+
+
+
+<Window x:Class="UDP_Socket_Example.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="UDP Socket Example" Height="300" Width="400">
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <Label Grid.Row="0" Content="Select mode:"/>
+        <RadioButton Grid.Row="1" Name="serverRadioButton" Content="Server"/>
+        <RadioButton Grid.Row="2" Name="clientRadioButton" Content="Client"/>
+        <Button Grid.Row="3" Content="Start" Click="StartButton_Click"/>
+        <TextBox Grid.Row="4" Name="outputTextBox" VerticalScrollBarVisibility="Auto" IsReadOnly="True"/>
+    </Grid>
+</Window>
+
+
+
+
+
+
+
 
 
 
