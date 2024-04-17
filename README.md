@@ -172,3 +172,19 @@ namespace UDPClient
     </Grid>
 </Window>
 
+
+
+private void SendToClient(string message)
+{
+    try
+    {
+        byte[] data = Encoding.UTF8.GetBytes(message);
+        udpClient.Send(data, data.Length, "127.0.0.1", port); // Change IP address if needed
+        Dispatcher.Invoke(() => { chatBox.AppendText($"Sent to client: {message}\n"); });
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Error: {ex.Message}");
+    }
+}
+
