@@ -188,4 +188,35 @@ private void SendToClient(string message)
         MessageBox.Show($"Error: {ex.Message}");
     }
 }
+-------
+
+private void Listen()
+{
+    while (true)
+    {
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+        byte[] data = udpClient.Receive(ref remoteEP);
+        string message = Encoding.UTF8.GetString(data);
+        Dispatcher.Invoke(() => 
+        { 
+            chatBox.AppendText($"Received from {remoteEP}: {message}\n"); 
+            SendToClient($"Echo from server: {message}"); // Alınan mesajı client'a gönder
+        });
+    }
+}
+
+private void SendToClient(string message)
+{
+    try
+    {
+        byte[] data = Encoding.UTF8.GetBytes(message);
+        udpClient.Send(data, data.Length, "127.0.0.1", port); // Change IP address if needed
+        Dispatcher.Invoke(() => { chatBox.AppendText($"Sent to client: {message}\n"); });
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Error: {ex.Message}");
+    }
+}
+
 
