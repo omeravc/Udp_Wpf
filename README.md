@@ -219,4 +219,60 @@ private void SendToClient(string message)
     }
 }
 
+""""""""
+
+private void Listen()
+{
+    while (true)
+    {
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+        byte[] data = udpClient.Receive(ref remoteEP);
+        string message = Encoding.UTF8.GetString(data);
+        string formattedMessage = $"Received from {remoteEP}: {message}"; // Mesajı formatla
+        Dispatcher.Invoke(() => 
+        { 
+            chatBox.AppendText($"{formattedMessage}\n"); // Formatlı mesajı ekle
+            SendToClient(formattedMessage); // Alınan formatlı mesajı client'a gönder
+        });
+    }
+}
+
+
+
+private void Send(string message, string ipAddress)
+{
+    try
+    {
+        byte[] data = Encoding.UTF8.GetBytes(message);
+        udpClient.Send(data, data.Length, ipAddress, port);
+    }
+    catch (Exception ex)
+    {
+        MessageBox.Show($"Error: {ex.Message}");
+    }
+}
+
+private void Receive()
+{
+    while (true)
+    {
+        IPEndPoint remoteEP = new IPEndPoint(IPAddress.Any, port);
+        byte[] data = udpClient.Receive(ref remoteEP);
+        string message = Encoding.UTF8.GetString(data);
+        Dispatcher.Invoke(() => 
+        { 
+            chatBox.AppendText($"{message}\n"); // Alınan mesajı direkt olarak ekle
+        });
+    }
+}
+
+
+
+
+
+
+
+
+
+
 
