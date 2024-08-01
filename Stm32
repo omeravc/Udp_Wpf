@@ -1,0 +1,91 @@
+#include "main.h"
+#include "i2c.h"
+#include "gpio.h"
+
+#define TCS34725_ADDRESS 0x29 << 1
+#define TCS34725_COMMAND_BIT 0x80
+#define TCS34725_ENABLE 0x00
+#define TCS34725_ENABLE_RGBC 0x02
+#define TCS34725_ENABLE_POWERON 0x01
+#define TCS34725_CDATAL 0x14
+
+void SystemClock_Config(void);
+void Error_Handler(void);
+
+void TCS34725_Init(void);
+void TCS34725_ReadRawData(uint16_t *red, uint16_t *green, uint16_t *blue, uint16_t *clear);
+
+uint16_t red, green, blue, clear;
+
+int main(void)
+{
+    HAL_Init();
+    SystemClock_Config();
+    
+    MX_GPIO_Init();
+    MX_I2C1_Init();
+
+    TCS34725_Init();
+
+    while (1)
+    {
+        TCS34725_ReadRawData(&red, &green, &blue, &clear);
+        HAL_Delay(1000);
+    }
+}
+
+void TCS34725_Init(void)
+{
+    uint8_t data;
+    data = TCS34725_ENABLE_POWERON | TCS34725_ENABLE_RGBC;
+    HAL_I2C_Mem_Write(&hi2c1, TCS34725_ADDRESS, TCS34725_COMMAND_BIT | TCS34725_ENABLE, 1, &data, 1, HAL_MAX_DELAY);
+}
+
+void TCS34725_ReadRawData(uint16_t *red, uint16_t *green, uint16_t *blue, uint16_t *clear)
+{
+    uint8_t data[8];
+    HAL_I2C_Mem_Read(&hi2c1, TCS34725_ADDRESS, TCS34725_COMMAND_BIT | TCS34725_CDATAL, 1, data, 8, HAL_MAX_DELAY);
+
+    *clear = data[0] | (data[1] << 8);
+    *red = data[2] | (data[3] << 8);
+    *green = data[4] | (data[5] << 8);
+    *blue = data[6] | (data[7] << 8);
+}
+
+void SystemClock_Config(void)
+{
+    RCC_OscInitTypeDef RCC_OscInitStruct = {0};
+    RCC_ClkInitTypeDef RCC_ClkInitStruct = {0};
+
+    RCC_OscInitStruct.OscillatorType = RCC_OSCILLATORTYPE_HSE;
+    RCC_OscInitStruct.HSEState = RCC_HSE_ON;
+    RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLM = 8;
+    RCC_OscInitStruct.PLL.PLLN = 336;
+    RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
+    RCC_OscInitStruct.PLL.PLLQ = 4;
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+    RCC_ClkInitStruct.ClockType = RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2;
+    RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
+    RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
+
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+void Error_Handler(void)
+{
+    __disable_irq();
+    while (1)
+    {
+    }
+}
